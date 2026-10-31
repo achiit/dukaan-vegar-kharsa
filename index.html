@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="hi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VEGAR diary</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;600;700&family=Mukta:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f1e3;--ink:#1f2a22;--g:#1b6b44;--r:#b3261e;--card:#fff;--line:#dcd3b8;--mut:#6b6b5c;--head:#1b6b44;--headink:#fff;--btn:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161b17;--ink:#eef2e8;--g:#58d68d;--r:#ff8a80;--card:#212922;--line:#36403a;--mut:#a3ad9f;--head:#1f3a2a;--headink:#eef2e8;--btn:#10200f}}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 Hind,system-ui,sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--head);z-index:10}
+h1,h2{font-family:Mukta,Hind,sans-serif;margin:0}
+header{background:var(--head);color:var(--headink);padding:14px 16px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;gap:10px}
+header h1{font-size:1.4rem;flex:1}
+header button{background:none;border:0;color:inherit;font:600 .95rem Hind,sans-serif;cursor:pointer;padding:4px 6px}
+main{max-width:640px;margin:auto;padding:14px 14px calc(40px + env(safe-area-inset-bottom,0px))}
+.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.box{background:var(--card);border:2px solid var(--line);border-radius:10px;padding:8px 10px}
+.box small{color:var(--mut);display:block;font-size:.8rem}.box b{font-size:1.15rem;font-family:Mukta,sans-serif;color:var(--r)}
+.form{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:10px;margin-bottom:16px}
+input{width:100%;font:inherit;padding:12px;border:2px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+input:focus-visible,button:focus-visible{outline:3px solid var(--g);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:20px;padding:5px 12px;font:inherit;font-size:.95rem;cursor:pointer}
+.chips button.on{background:var(--g);color:var(--btn);border-color:var(--g)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.add{background:var(--g);color:var(--btn);border:0;border-radius:10px;padding:14px;font:700 1.05rem Hind,sans-serif;cursor:pointer}
+.day{display:flex;justify-content:space-between;margin:16px 4px 6px;font-weight:700}
+.day span:last-child{color:var(--r)}
+.e{background:var(--card);border:2px solid var(--line);border-radius:8px;padding:9px 12px;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.e small{color:var(--mut);display:block}.e b{font-family:Mukta,sans-serif;white-space:nowrap}
+.e button{background:none;border:0;color:var(--mut);font-size:1.1rem;cursor:pointer;padding:6px}
+.empty{text-align:center;color:var(--mut);padding:30px 10px}
+.wa{width:100%;margin-top:12px;background:none;border:2px solid var(--line);color:var(--ink);border-radius:10px;padding:11px;font:600 1rem Hind,sans-serif;cursor:pointer}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;padding:16px;z-index:20}
+.sheet>div{background:var(--bg);width:100%;max-width:420px;margin:auto;border-radius:14px;padding:18px 16px;display:grid;gap:10px}
+</style></head><body>
+<header id="hd"></header>
+<main id="app"></main>
+<div id="ov"></div>
+<script>
+var S={name:'',items:[],cat:'',filter:'m'};
+var CATS=['खाना','चाय-नाश्ता','सब्ज़ी','किराना','पेट्रोल','मोबाइल रिचार्ज','दवाई','कपड़े','अन्य'];
+function load(){try{var d=JSON.parse(localStorage.getItem('vegar_kharcha')||'{}');S.name=d.name||'';S.items=d.items||[]}catch(e){}}
+function save(){try{localStorage.setItem('vegar_kharcha',JSON.stringify({name:S.name,items:S.items}))}catch(e){}}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function today(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+function rs(n){return '₹'+Math.round(n*100)/100}
+function fd(s){var p=s.split('-');return new Date(p[0],p[1]-1,p[2]).toLocaleDateString('hi-IN',{day:'numeric',month:'long',year:'numeric'})}
+function sumBy(f){return S.items.filter(f).reduce(function(a,x){return a+x.a},0)}
+function render(){
+ var hd=document.getElementById('hd'),app=document.getElementById('app'),t=today();
+ hd.innerHTML='<h1>VEGAR diary</h1>'+(S.name?'<button onclick="askName()">👤 '+esc(S.name)+'</button>':'');
+ var h='<div class="sum"><div class="box"><small>आज का खर्चा</small><b>'+rs(sumBy(function(x){return x.d===t}))+'</b></div>'
+  +'<div class="box"><small>इस महीने</small><b>'+rs(sumBy(function(x){return x.d.slice(0,7)===t.slice(0,7)}))+'</b></div>'
+  +'<div class="box"><small>कुल</small><b>'+rs(sumBy(function(){return true}))+'</b></div></div>';
+ h+='<div class="form"><div class="chips" role="group" aria-label="किस चीज़ पर">'+CATS.map(function(c){return '<button type="button" class="'+(S.cat===c?'on':'')+'" onclick="pick(this)">'+c+'</button>'}).join('')+'</div>'
+  +'<input id="it" placeholder="किस चीज़ पर खर्च किया (लिखें)" maxlength="50" value="'+esc(S.cat)+'">'
+  +'<div class="two"><input id="am" type="number" inputmode="decimal" min="0" placeholder="कितना (₹)"><input id="dt" type="date" value="'+t+'" max="'+t+'"></div>'
+  +'<button class="add" onclick="add()">खर्चा जोड़ें</button></div>';
+ var list=S.items.map(function(x,i){return{x:x,i:i}}).sort(function(a,b){return a.x.d<b.x.d?1:a.x.d>b.x.d?-1:b.i-a.i});
+ if(!list.length)h+='<div class="empty">अभी कोई खर्चा नहीं लिखा। ऊपर से पहला खर्चा जोड़ें।</div>';
+ var cur='';
+ list.forEach(function(o){var x=o.x;
+  if(x.d!==cur){cur=x.d;var tot=sumBy(function(y){return y.d===cur});h+='<div class="day"><span>'+(cur===t?'आज · ':'')+fd(cur)+'</span><span>'+rs(tot)+'</span></div>'}
+  h+='<div class="e"><div>'+esc(x.i)+'</div><div style="display:flex;align-items:center"><b>'+rs(x.a)+'</b><button onclick="del('+o.i+')" aria-label="हटाएँ">🗑</button></div></div>'});
+ if(list.length)h+='<button class="wa" onclick="share()">इस महीने का हिसाब WhatsApp पर भेजें</button>';
+ var keep=[document.getElementById('it'),document.getElementById('am')].map(function(e){return e?e.value:''});
+ app.innerHTML=h;
+ if(keep[0]&&!S.cat)document.getElementById('it').value=keep[0];
+ if(keep[1])document.getElementById('am').value=keep[1];
+}
+function pick(b){S.cat=(S.cat===b.textContent)?'':b.textContent;var a=document.getElementById('am').value;render();document.getElementById('am').value=a;document.getElementById('am').focus()}
+function add(){
+ var it=document.getElementById('it').value.trim(),a=parseFloat(document.getElementById('am').value),d=document.getElementById('dt').value||today();
+ if(!it){document.getElementById('it').focus();return}
+ if(!(a>0)){document.getElementById('am').focus();return}
+ S.items.push({i:it,a:a,d:d});S.cat='';save();render();
+}
+function del(i){sheet('<h2>यह खर्चा हटाएँ?</h2><div>'+esc(S.items[i].i)+' · '+rs(S.items[i].a)+'</div><button class="add" onclick="doDel('+i+')">हाँ, हटाएँ</button><button onclick="closeS()" style="background:none;border:0;color:var(--mut);font:inherit;padding:8px;cursor:pointer">रद्द करें</button>')}
+function doDel(i){S.items.splice(i,1);save();closeS();render()}
+function sheet(h){document.getElementById('ov').innerHTML='<div class="sheet" onclick="if(event.target===this)closeS()"><div>'+h+'</div></div>'}
+function closeS(){document.getElementById('ov').innerHTML=''}
+function askName(){sheet('<h2>आपका नाम</h2><input id="nm" placeholder="अपना नाम लिखें" maxlength="40" value="'+esc(S.name)+'"><button class="add" onclick="setName()">सेव करें</button>');setTimeout(function(){document.getElementById('nm').focus()},50)}
+function setName(){var n=document.getElementById('nm').value.trim();if(!n)return;S.name=n;save();closeS();render()}
+function share(){var m=today().slice(0,7),t='VEGAR diary'+(S.name?' - '+S.name:'')+'\n';
+ var by={};S.items.filter(function(x){return x.d.slice(0,7)===m}).sort(function(a,b){return a.d<b.d?-1:1}).forEach(function(x){t+=fd(x.d)+': '+x.i+' '+rs(x.a)+'\n';by[x.i]=(by[x.i]||0)+x.a});
+ t+='\nइस महीने कुल: '+rs(sumBy(function(x){return x.d.slice(0,7)===m}));
+ window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank')}
+load();render();if(!S.name)askName();
+</script></body></html>
